@@ -1,0 +1,16 @@
+// diagnosis.proto
+syntax = "proto3";
+
+package diagnosis;
+
+service DiagnosisService {
+  rpc GetDiagnosis (DiagnosisRequest) returns (DiagnosisResponse);
+}
+
+message DiagnosisRequest {
+  repeated string symptoms = 1;
+}
+
+message DiagnosisResponse {
+  string result = 1;
+}

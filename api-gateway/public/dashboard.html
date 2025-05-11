@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - Diagnostic Médical</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #007bff;
+      color: white;
+      padding: 1em;
+      text-align: center;
+    }
+
+    main {
+      padding: 2em;
+    }
+
+    .card {
+      background: white;
+      padding: 1em;
+      margin-bottom: 1em;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    canvas {
+      max-width: 400px;
+      margin-top: 1em;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Dashboard - Diagnostic Médical</h1>
+  </header>
+
+  <main>
+    <div class="card">
+      <h2>Statistiques générales</h2>
+      <p>Nombre de diagnostics effectués : <strong id="total-diagnoses">...</strong></p>
+      <canvas id="diagnosisChart"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>Dernier diagnostic</h2>
+      <p>Symptômes : <span id="last-symptoms">...</span></p>
+      <p>Diagnostic : <span id="last-diagnosis">...</span></p>
+    </div>
+  </main>
+
+  <script>
+    async function fetchLogs() {
+      try {
+        const response = await fetch('http://localhost:3002/logs');
+        const json = await response.json();
+        if (!json.success) throw new Error("Erreur API");
+
+        const logs = json.logs;
+
+        // Total
+        document.getElementById('total-diagnoses').textContent = logs.length;
+
+        // Dernier log
+        if (logs.length > 0) {
+          const last = logs[0];
+          document.getElementById('last-symptoms').textContent = last.symptoms.join(', ');
+          document.getElementById('last-diagnosis').textContent = last.diagnosis;
+        }
+
+        // Graphique camembert
+        const counts = {};
+        logs.forEach(log => {
+          counts[log.diagnosis] = (counts[log.diagnosis] || 0) + 1;
+        });
+
+        const labels = Object.keys(counts);
+        const values = Object.values(counts);
+
+        new Chart(document.getElementById('diagnosisChart'), {
+          type: 'pie',
+          data: {
+            labels,
+            datasets: [{
+              data: values,
+              backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1']
+            }]
+          }
+        });
+
+      } catch (error) {
+        console.error("Erreur lors de la récupération des données :", error);
+      }
+    }
+
+    fetchLogs();
+  </script>
+</body>
+</html>
